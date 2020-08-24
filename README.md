@@ -1,59 +1,72 @@
-## YOLOV4：You Only Look Once目标检测模型在Keras当中的实现
+## PSPnet：Pyramid Scene Parsing Network目标检测模型在Keras当中的实现
 ---
 
 ### 目录
 1. [所需环境 Environment](#所需环境)
 2. [注意事项 Attention](#注意事项)
-3. [小技巧的设置 TricksSet](#小技巧的设置)
-4. [文件下载 Download](#文件下载))
+3. [文件下载 Download](#文件下载))
+4. [预测步骤 How2predict](#预测步骤)
 5. [训练步骤 How2train](#训练步骤)
-6. [参考资料 Reference](#Reference)
-
-### YOLOV4的改进
-- [x] 主干特征提取网络：DarkNet53 => CSPDarkNet53
-- [x] 特征金字塔：SPP，PAN
-- [x] 训练用到的小技巧：Mosaic数据增强、Label Smoothing平滑、CIOU、学习率余弦退火衰减
-- [x] 激活函数：使用Mish激活函数
-- [ ] ……balabla
+6. [miou计算 miou](#miou计算)
+7. [参考资料 Reference](#Reference)
 
 ### 所需环境
-tensorflow-gpu==1.13.1  
-keras==2.1.5  
+tensorflow-gpu==1.13.1    
+keras==2.1.5   
 
 ### 注意事项
-代码中的yolo4_weights.h5是基于608x608的图片训练的，但是由于显存原因。我将代码中的图片大小修改成了416x416。有需要的可以修改回来。 代码中的默认anchors是基于608x608的图片的。   
-
-### 小技巧的设置
-在train.py文件下：   
-1、mosaic参数可用于控制是否实现Mosaic数据增强。   
-2、Cosine_scheduler可用于控制是否使用学习率余弦退火衰减。   
-3、label_smoothing可用于控制是否Label Smoothing平滑。
+代码中的pspnet_mobilenetv2.h5和pspnet_resnet50.h5是基于VOC拓展数据集训练的。训练和预测时注意修改backbone。    
 
 ### 文件下载
-训练所需的yolo4_weights.h5可在百度网盘中下载。  
-链接: https://pan.baidu.com/s/1FF79PmRc8BzZk8M_ARdMmw 提取码: dc2j  
-yolo4_weights.h5是coco数据集的权重。  
-yolo4_voc_weights.h5是voc数据集的权重。
+训练所需的pspnet_mobilenetv2.h5和pspnet_resnet50.h5可在百度网盘中下载。    
+链接: https://pan.baidu.com/s/1VNSYi39AaqjHVbdNpW_7sw 提取码: q2iv    
+
+### 预测步骤
+#### 1、使用预训练权重
+a、下载完库后解压，如果想用backbone为mobilenet的进行预测，直接运行predict.py就可以了；如果想要利用backbone为resnet50的进行预测，在百度网盘下载pspnet_resnet50.h5，放入model_data，修改pspnet.py的backbone和model_path之后再运行predict.py，输入。  
+```python
+img/street.jpg
+```
+可完成预测。    
+b、利用video.py可进行摄像头检测。    
+#### 2、使用自己训练的权重
+a、按照训练步骤训练。    
+b、在pspnet.py文件里面，在如下部分修改model_path和backbone使其对应训练好的文件；**model_path对应logs文件夹下面的权值文件，backbone是所使用的主干特征提取网络**。    
+```python
+_defaults = {
+    "model_path"        : 'model_data/pspnet_mobilenetv2.h5',
+    "backbone"          : "mobilenet",
+    "model_image_size"  : (473, 473, 3),
+    "num_classes"       : 21,
+    "downsample_factor" : 16,
+    "blend"             : False,
+}
+```
+c、运行predict.py，输入    
+```python
+img/street.jpg
+```
+可完成预测。    
+d、利用video.py可进行摄像头检测。    
 
 ### 训练步骤
-1、本文使用VOC格式进行训练。  
-2、训练前将标签文件放在VOCdevkit文件夹下的VOC2007文件夹下的Annotation中。  
-3、训练前将图片文件放在VOCdevkit文件夹下的VOC2007文件夹下的JPEGImages中。  
-4、在训练前利用voc2yolo3.py文件生成对应的txt。  
-5、再运行根目录下的voc_annotation.py，运行前需要将classes改成你自己的classes。  
-```python
-classes = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
-```
-6、就会生成对应的2007_train.txt，每一行对应其图片位置及其真实框的位置。  
-7、在训练前需要修改model_data里面的voc_classes.txt文件，需要将classes改成你自己的classes。  
-8、运行train.py即可开始训练。
+#### 1、训练voc数据集
+1、将我提供的voc数据集放入VOCdevkit中（无需运行voc2pspnet.py）。  
+2、在train.py中设置对应参数，默认参数已经对应voc数据集所需要的参数了，所以只要修改backbone和model_path即可。  
+3、运行train.py进行训练。  
 
-### mAP目标检测精度计算更新
-更新了get_gt_txt.py、get_dr_txt.py和get_map.py文件。  
-get_map文件克隆自https://github.com/Cartucho/mAP  
-具体mAP计算过程可参考：https://www.bilibili.com/video/BV1zE411u7Vw
+#### 2、训练自己的数据集
+1、本文使用VOC格式进行训练。  
+2、训练前将标签文件放在VOCdevkit文件夹下的VOC2007文件夹下的SegmentationClass中。    
+3、训练前将图片文件放在VOCdevkit文件夹下的VOC2007文件夹下的JPEGImages中。    
+4、在训练前利用voc2pspnet.py文件生成对应的txt。    
+5、在train.py文件夹下面，选择自己要使用的主干模型和下采样因子。本文提供的主干模型有mobilenet和resnet50。下采样因子可以在8和16中选择。需要注意的是，预训练模型需要和主干模型相对应。  
+6、注意修改train.py的num_classes为分类个数+1。  
+7、运行train.py即可开始训练。  
+
+### miou计算
+参考miou计算视频和博客。  
 
 ### Reference
-https://github.com/qqwweee/keras-yolo3/  
-https://github.com/Cartucho/mAP  
-https://github.com/Ma-Dan/keras-yolo4  
+https://github.com/ggyyzm/pytorch_segmentation  
+https://github.com/bonlime/keras-deeplab-v3-plus
