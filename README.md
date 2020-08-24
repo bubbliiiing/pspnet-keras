@@ -19,8 +19,9 @@ keras==2.1.5
 
 ### 文件下载
 训练所需的pspnet_mobilenetv2.h5和pspnet_resnet50.h5可在百度网盘中下载。    
-链接: https://pan.baidu.com/s/1VNSYi39AaqjHVbdNpW_7sw 提取码: q2iv    
-
+链接: https://pan.baidu.com/s/1_nEtsjUOeJYHFyVec77l4Q 提取码: fikr     
+VOC拓展数据集的百度网盘如下：  
+链接: https://pan.baidu.com/s/1BrR7AUM1XJvPWjKMIy2uEw 提取码: vszf    
 ### 预测步骤
 #### 1、使用预训练权重
 a、下载完库后解压，如果想用backbone为mobilenet的进行预测，直接运行predict.py就可以了；如果想要利用backbone为resnet50的进行预测，在百度网盘下载pspnet_resnet50.h5，放入model_data，修改pspnet.py的backbone和model_path之后再运行predict.py，输入。  
