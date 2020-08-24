@@ -35,7 +35,7 @@ if __name__ == "__main__":
     #   mobilenet
     #   resnet50
     #---------------------#
-    backbone = "resnet50"
+    backbone = "mobilenet"
     #---------------------#
     #   是否使用辅助分支
     #   会占用大量显存
