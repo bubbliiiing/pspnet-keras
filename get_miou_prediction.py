@@ -15,7 +15,7 @@ class miou_Pspnet(Pspnet):
         pr = pr.argmax(axis=-1).reshape([self.model_image_size[0],self.model_image_size[1]])
         pr = pr[int((self.model_image_size[0]-nh)//2):int((self.model_image_size[0]-nh)//2+nh), int((self.model_image_size[1]-nw)//2):int((self.model_image_size[1]-nw)//2+nw)]
         
-        image = Image.fromarray(np.uint8(pr)).resize((orininal_w,orininal_h))
+        image = Image.fromarray(np.uint8(pr)).resize((orininal_w,orininal_h), Image.NEAREST)
 
         return image
 
