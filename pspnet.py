@@ -87,7 +87,7 @@ class Pspnet(object):
             seg_img[:,:,1] += ((pr[:,: ] == c )*( self.colors[c][1] )).astype('uint8')
             seg_img[:,:,2] += ((pr[:,: ] == c )*( self.colors[c][2] )).astype('uint8')
 
-        image = Image.fromarray(np.uint8(seg_img)).resize((orininal_w,orininal_h))
+        image = Image.fromarray(np.uint8(seg_img)).resize((orininal_w,orininal_h), Image.NEAREST)
 
         if self.blend:
             image = Image.blend(old_img,image,0.7)
