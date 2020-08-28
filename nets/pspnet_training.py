@@ -102,15 +102,6 @@ class Generator(object):
         image = new_image
         label = new_label
         
-
-        rotate = rand()<.5
-        if rotate: 
-            angle=np.random.randint(-45,45)
-            a,b=w/2,h/2
-            M=cv2.getRotationMatrix2D((a,b),angle,1)
-            image=cv2.warpAffine(np.array(image),M,(w,h),borderValue=[128,128,128]) 
-            label=cv2.warpAffine(np.array(label),M,(w,h)) 
-
         # distort image
         hue = rand(-hue, hue)
         sat = rand(1, sat) if rand()<.5 else 1/rand(1, sat)
