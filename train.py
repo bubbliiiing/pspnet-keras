@@ -60,11 +60,11 @@ if __name__ == "__main__":
     model.load_weights(model_path, by_name=True, skip_mismatch=True)
 
     # 打开数据集的txt
-    with open(r"VOCdevkit\VOC2007\ImageSets\Segmentation\train.txt","r") as f:
+    with open(r"VOCdevkit/VOC2007/ImageSets/Segmentation/train.txt","r") as f:
         train_lines = f.readlines()
 
     # 打开数据集的txt
-    with open(r"VOCdevkit\VOC2007\ImageSets\Segmentation\val.txt","r") as f:
+    with open(r"VOCdevkit/VOC2007/ImageSets/Segmentation/val.txt","r") as f:
         val_lines = f.readlines()
         
     # 保存的方式，3世代保存一次
