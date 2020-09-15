@@ -12,7 +12,7 @@
 8. [参考资料 Reference](#Reference)
 
 ### 性能情况
-| 训练数据集 | 权值文件名称 | 测试数据集 | 输入图片大小 | mAP 0.5:0.95 | 
+| 训练数据集 | 权值文件名称 | 测试数据集 | 输入图片大小 | mIOU | 
 | :-----: | :-----: | :------: | :------: | :------: | 
 | VOC12+SBD | [pspnet_mobilenetv2.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_mobilenetv2.h5) | VOC-Val12 | 473x473| 71.04 | 
 | VOC12+SBD | [pspnet_resnet50.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_resnet50.h5) | VOC-Val12 | 473x473| 79.92 | 
