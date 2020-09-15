@@ -2,13 +2,20 @@
 ---
 
 ### 目录
-1. [所需环境 Environment](#所需环境)
-2. [注意事项 Attention](#注意事项)
-3. [文件下载 Download](#文件下载)
-4. [预测步骤 How2predict](#预测步骤)
-5. [训练步骤 How2train](#训练步骤)
-6. [miou计算 miou](#miou计算)
-7. [参考资料 Reference](#Reference)
+1. [性能情况 Performance](#性能情况)
+2. [所需环境 Environment](#所需环境)
+3. [注意事项 Attention](#注意事项)
+4. [文件下载 Download](#文件下载)
+5. [预测步骤 How2predict](#预测步骤)
+6. [训练步骤 How2train](#训练步骤)
+7. [miou计算 miou](#miou计算)
+8. [参考资料 Reference](#Reference)
+
+### 性能情况
+| 训练数据集 | 权值文件名称 | 测试数据集 | 输入图片大小 | mAP 0.5:0.95 | 
+| :-----: | :-----: | :------: | :------: | :------: | 
+| VOC12+SBD | [pspnet_mobilenetv2.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_mobilenetv2.h5) | VOC-Val12 | 473x473| 71.04 | 
+| VOC12+SBD | [pspnet_resnet50.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_resnet50.h5) | VOC-Val12 | 473x473| 79.92 | 
 
 ### 所需环境
 tensorflow-gpu==1.13.1    
