@@ -1,4 +1,4 @@
-## PSPnet：Pyramid Scene Parsing Network目标检测模型在Keras当中的实现
+## PSPnet：Pyramid Scene Parsing Network语义分割模型在Keras当中的实现
 ---
 
 ### 目录
