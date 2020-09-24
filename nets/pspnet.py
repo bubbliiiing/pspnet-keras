@@ -73,7 +73,6 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
 		f4 = Activation('relu', name="branch_relu1")(f4)
 		# 防止过拟合
 		f4 = Dropout(0.1)(f4)
-
 		# 60x60x21
 		f4 = Conv2D(n_classes,(1,1),data_format=IMAGE_ORDERING, padding='same', name="branch_conv2")(f4)
 		# [473,473,nclasses]
@@ -85,5 +84,3 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
 	else:
 		model = Model(img_input,[o])
 		return model
-
-	
