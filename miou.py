@@ -16,6 +16,10 @@ def per_class_iu(hist):
     # 矩阵的对角线上的值组成的一维数组/矩阵的所有元素之和，返回值形状(n,)
     return np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))  
 
+def per_class_PA(hist):
+    # 矩阵的对角线上的值组成的一维数组/矩阵的所有元素之和，返回值形状(n,)
+    return np.diag(hist) / hist.sum(1)
+
 def compute_mIoU(gt_dir, pred_dir, png_name_list, num_classes, name_classes):  
     # 计算mIoU的函数
     print('Num classes', num_classes)  
@@ -43,17 +47,19 @@ def compute_mIoU(gt_dir, pred_dir, png_name_list, num_classes, name_classes):
         hist += fast_hist(label.flatten(), pred.flatten(),num_classes)  
         # 每计算10张就输出一下目前已计算的图片中所有类别平均的mIoU值
         if ind > 0 and ind % 10 == 0:  
-            print('{:d} / {:d}: {:0.2f}'.format(ind, len(gt_imgs),
-                                                100 * np.mean(
-                                                    per_class_iu(hist))))
+            print('{:d} / {:d}: mIou-{:0.2f}; mPA-{:0.2f}'.format(ind, len(gt_imgs),
+                                                    100 * np.mean(per_class_iu(hist)),
+                                                    100 * np.mean(per_class_PA(hist))))
     # 计算所有验证集图片的逐类别mIoU值
-    mIoUs = per_class_iu(hist)
+    mIoUs   = per_class_iu(hist)
+    mPA     = per_class_PA(hist)
     # 逐类别输出一下mIoU值
     for ind_class in range(num_classes):
-        print('===>' + name_classes[ind_class] + ':\t' + str(round(mIoUs[ind_class] * 100, 2)))
+        print('===>' + name_classes[ind_class] + ':\tmIou-' + str(round(mIoUs[ind_class] * 100, 2)) + '; mPA-' + str(round(mPA[ind_class] * 100, 2)))
     # 在所有验证集图像上求所有类别平均的mIoU值，计算时忽略NaN值
-    print('===> mIoU: ' + str(round(np.nanmean(mIoUs) * 100, 2)))  
+    print('===> mIoU: ' + str(round(np.nanmean(mIoUs) * 100, 2)) + '; mPA: ' + str(round(np.nanmean(mPA) * 100, 2)))  
     return mIoUs
+
 
 if __name__ == "__main__":
     gt_dir = "./VOCdevkit/VOC2007/SegmentationClass"
