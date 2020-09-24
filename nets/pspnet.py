@@ -68,16 +68,16 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
 	o = Activation("softmax", name="main")(o)
 	
 	if aux_branch:
-		f4 = Conv2D(out_channel//8, (3,3), data_format=IMAGE_ORDERING, padding='same', use_bias=False)(f4)
-		f4 = BatchNormalization()(f4)
-		f4 = Activation('relu')(f4)
+		f4 = Conv2D(out_channel//8, (3,3), data_format=IMAGE_ORDERING, padding='same', use_bias=False, name="branch_conv1")(f4)
+		f4 = BatchNormalization(name="branch_batchnor1")(f4)
+		f4 = Activation('relu', name="branch_relu1")(f4)
 		# 防止过拟合
 		f4 = Dropout(0.1)(f4)
 
 		# 60x60x21
-		f4 = Conv2D(n_classes,(1,1),data_format=IMAGE_ORDERING, padding='same')(f4)
+		f4 = Conv2D(n_classes,(1,1),data_format=IMAGE_ORDERING, padding='same', name="branch_conv2")(f4)
 		# [473,473,nclasses]
-		f4 = Lambda(lambda x: tf.image.resize_images(x, (inputs_size[1], inputs_size[0]), align_corners=True))(f4)
+		f4 = Lambda(lambda x: tf.image.resize_images(x, (inputs_size[1], inputs_size[0]), align_corners=True), name="branch_resize")(f4)
 		# 获得每一个像素点属于每一个类的概率了
 		f4 = Activation("softmax", name="aux")(f4)
 		model = Model(img_input,[f4,o])
