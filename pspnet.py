@@ -34,7 +34,7 @@ class Pspnet(object):
         self.model = pspnet(self.num_classes,self.model_image_size,
                     downsample_factor=self.downsample_factor, backbone=self.backbone, aux_branch=False)
 
-        self.model.load_weights(self.model_path)
+        self.model.load_weights(self.model_path, by_name=True)
         print('{} model loaded.'.format(self.model_path))
         
         if self.num_classes <= 21:
