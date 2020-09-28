@@ -7,8 +7,10 @@ import tensorflow as tf
 IMAGE_ORDERING = 'channels_last'
 MERGE_AXIS = -1
 
-def resize_image(inp, s, data_format):
-    return Lambda(lambda x: tf.image.resize_images(x, (K.int_shape(x)[1]*s[0], K.int_shape(x)[2]*s[1])))(inp)
+def resize_images(args):
+    x = args[0]
+    y = args[1]
+    return tf.image.resize_images(x, (K.int_shape(y)[1], K.int_shape(y)[2]), align_corners=True)
 
 def pool_block(feats, pool_factor, out_channel):
     h = K.int_shape(feats)[1]
@@ -21,8 +23,8 @@ def pool_block(feats, pool_factor, out_channel):
     # 进行卷积
     x = Conv2D(out_channel//4, (1 ,1), data_format=IMAGE_ORDERING, padding='same', use_bias=False)(x)
     x = BatchNormalization()(x)
-    x = Activation('relu' )(x)
-    x = Lambda(lambda x: tf.image.resize_images(x, (K.int_shape(feats)[1], K.int_shape(feats)[2]), align_corners=True))(x)
+    x = Activation('relu')(x)
+    x = Lambda(resize_images)([x, feats])
     return x
 
 def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', aux_branch=True):
@@ -63,7 +65,7 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
     # 60x60x21
     o = Conv2D(n_classes,(1,1),data_format=IMAGE_ORDERING, padding='same')(o)
     # [473,473,nclasses]
-    o = Lambda(lambda x: tf.image.resize_images(x, (inputs_size[1], inputs_size[0]), align_corners=True))(o)
+    o = Lambda(resize_images)([o, img_input])
     # 获得每一个像素点属于每一个类的概率了
     o = Activation("softmax", name="main")(o)
 
@@ -76,7 +78,7 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
         # 60x60x21
         f4 = Conv2D(n_classes,(1,1),data_format=IMAGE_ORDERING, padding='same', name="branch_conv2")(f4)
         # [473,473,nclasses]
-        f4 = Lambda(lambda x: tf.image.resize_images(x, (inputs_size[1], inputs_size[0]), align_corners=True), name="branch_resize")(f4)
+        f4 = Lambda(resize_images, name="branch_resize")([f4, img_input])
         # 获得每一个像素点属于每一个类的概率了
         f4 = Activation("softmax", name="aux")(f4)
         model = Model(img_input,[f4,o])
