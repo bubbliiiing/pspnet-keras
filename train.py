@@ -109,9 +109,9 @@ if __name__ == "__main__":
         gen_val = Generator(Batch_size, val_lines, inputs_size, num_classes,aux_branch).generate(False)
         # 开始训练
         model.fit_generator(gen,
-                steps_per_epoch=max(1, len(train_lines)//Batch_size)//4,
+                steps_per_epoch=max(1, len(train_lines)//Batch_size),
                 validation_data=gen_val,
-                validation_steps=max(1, len(val_lines)//Batch_size)//4,
+                validation_steps=max(1, len(val_lines)//Batch_size),
                 epochs=Freeze_Epoch,
                 initial_epoch=Init_Epoch,
                 callbacks=[checkpoint_period, reduce_lr,tensorboard])
