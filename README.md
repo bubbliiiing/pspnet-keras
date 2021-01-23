@@ -53,8 +53,7 @@ _defaults = {
 3. 运行predict.py，输入    
 ```python
 img/street.jpg
-```
-可完成预测。    
+```    
 4. 利用video.py可进行摄像头检测。    
 
 ## 训练步骤
