@@ -27,6 +27,11 @@ class Pspnet(object):
         #   让识别结果和原图混合
         #--------------------------------#
         "blend"             : True,
+        #---------------------------------------------------------------------#
+        #   该变量用于控制是否使用letterbox_image对输入图像进行不失真的resize，
+        #   在多次测试后，发现关闭letterbox_image直接resize的效果更好
+        #---------------------------------------------------------------------#
+        "letterbox_image"   : False,
     }
 
     #---------------------------------------------------#
@@ -88,7 +93,11 @@ class Pspnet(object):
         #---------------------------------------------------#
         #   进行不失真的resize，添加灰条，进行图像归一化
         #---------------------------------------------------#
-        img, nw, nh = self.letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
+        if self.letterbox_image:
+            img, nw, nh = self.letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
+        else:
+            img = image.convert('RGB')
+            img = image.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)
         img = np.asarray([np.array(img)/255])
         
         #---------------------------------------------------#
@@ -102,8 +111,9 @@ class Pspnet(object):
         #--------------------------------------#
         #   将灰条部分截取掉
         #--------------------------------------#
-        pr = pr[int((self.model_image_size[0]-nh)//2):int((self.model_image_size[0]-nh)//2+nh), int((self.model_image_size[1]-nw)//2):int((self.model_image_size[1]-nw)//2+nw)]
-
+        if self.letterbox_image:
+            pr = pr[int((self.model_image_size[0]-nh)//2):int((self.model_image_size[0]-nh)//2+nh), int((self.model_image_size[1]-nw)//2):int((self.model_image_size[1]-nw)//2+nw)]
+        
         #------------------------------------------------#
         #   创建一副新图，并根据每个像素点的种类赋予颜色
         #------------------------------------------------#
