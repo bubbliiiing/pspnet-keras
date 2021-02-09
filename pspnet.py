@@ -97,7 +97,7 @@ class Pspnet(object):
             img, nw, nh = self.letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
         else:
             img = image.convert('RGB')
-            img = image.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)
+            img = img.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)
         img = np.asarray([np.array(img)/255])
         
         #---------------------------------------------------#
