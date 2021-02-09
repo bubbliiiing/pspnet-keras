@@ -1,6 +1,9 @@
 ## PSPnet：Pyramid Scene Parsing Network语义分割模型在Keras当中的实现
 ---
 
+**2021年2月9日更新：**   
+**加入letterbox_image的选项，关闭letterbox_image后网络的map一般可以得到少量提升。**
+
 ## 目录
 1. [性能情况 Performance](#性能情况)
 2. [所需环境 Environment](#所需环境)
@@ -14,8 +17,8 @@
 ## 性能情况
 | 训练数据集 | 权值文件名称 | 测试数据集 | 输入图片大小 | mIOU | 
 | :-----: | :-----: | :------: | :------: | :------: | 
-| VOC12+SBD | [pspnet_mobilenetv2.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_mobilenetv2.h5) | VOC-Val12 | 473x473| 71.04 | 
-| VOC12+SBD | [pspnet_resnet50.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_resnet50.h5) | VOC-Val12 | 473x473| 79.92 | 
+| VOC12+SBD | [pspnet_mobilenetv2.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_mobilenetv2.h5) | VOC-Val12 | 473x473| 71.46 | 
+| VOC12+SBD | [pspnet_resnet50.h5](https://github.com/bubbliiiing/pspnet-keras/releases/download/v1.0/pspnet_resnet50.h5) | VOC-Val12 | 473x473| 79.96 | 
 
 ## 所需环境
 tensorflow-gpu==1.13.1    
