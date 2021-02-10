@@ -13,13 +13,30 @@ from pspnet import Pspnet
 使用'img/street.jpg'图片进行测试，该测试方法参考库https://github.com/zylo117/Yet-Another-EfficientDet-Pytorch
 video.py里面测试的FPS会低于该FPS，因为摄像头的读取频率有限，而且处理过程包含了前处理和绘图部分。
 '''
+def letterbox_image(image, size):
+    '''resize image with unchanged aspect ratio using padding'''
+    iw, ih = image.size
+    w, h = size
+    scale = min(w/iw, h/ih)
+    nw = int(iw*scale)
+    nh = int(ih*scale)
+
+    image = image.resize((nw,nh), Image.BICUBIC)
+    new_image = Image.new('RGB', size, (128,128,128))
+    new_image.paste(image, ((w-nw)//2, (h-nh)//2))
+    return new_image,nw,nh
+
 class FPS_Pspnet(Pspnet):
     def get_FPS(self, image, test_interval):
         orininal_h = np.array(image).shape[0]
         orininal_w = np.array(image).shape[1]
 
+        #---------------------------------------------------------#
+        #   给图像增加灰条，实现不失真的resize
+        #   也可以直接resize进行识别
+        #---------------------------------------------------------#
         if self.letterbox_image:
-            img, nw, nh = self.letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
+            img, nw, nh = letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
         else:
             img = image.convert('RGB')
             img = img.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)

@@ -7,6 +7,19 @@ from tqdm import tqdm
 from pspnet import Pspnet
 
 
+def letterbox_image(image, size):
+    '''resize image with unchanged aspect ratio using padding'''
+    iw, ih = image.size
+    w, h = size
+    scale = min(w/iw, h/ih)
+    nw = int(iw*scale)
+    nh = int(ih*scale)
+
+    image = image.resize((nw,nh), Image.BICUBIC)
+    new_image = Image.new('RGB', size, (128,128,128))
+    new_image.paste(image, ((w-nw)//2, (h-nh)//2))
+    return new_image,nw,nh
+
 class miou_Pspnet(Pspnet):
     def detect_image(self, image):
         orininal_h = np.array(image).shape[0]
@@ -17,7 +30,7 @@ class miou_Pspnet(Pspnet):
         #   也可以直接resize进行识别
         #---------------------------------------------------------#
         if self.letterbox_image:
-            img, nw, nh = self.letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
+            img, nw, nh = letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
         else:
             img = image.convert('RGB')
             img = img.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)

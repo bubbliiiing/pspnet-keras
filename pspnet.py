@@ -8,6 +8,19 @@ from PIL import Image
 from nets.pspnet import pspnet
 
 
+def letterbox_image(image, size):
+    '''resize image with unchanged aspect ratio using padding'''
+    iw, ih = image.size
+    w, h = size
+    scale = min(w/iw, h/ih)
+    nw = int(iw*scale)
+    nh = int(ih*scale)
+
+    image = image.resize((nw,nh), Image.BICUBIC)
+    new_image = Image.new('RGB', size, (128,128,128))
+    new_image.paste(image, ((w-nw)//2, (h-nh)//2))
+    return new_image,nw,nh
+
 #--------------------------------------------#
 #   使用自己训练好的模型预测需要修改3个参数
 #   model_path、backbone和num_classes都需要修改！
@@ -29,9 +42,10 @@ class Pspnet(object):
         "blend"             : True,
         #---------------------------------------------------------------------#
         #   该变量用于控制是否使用letterbox_image对输入图像进行不失真的resize，
-        #   在多次测试后，发现关闭letterbox_image直接resize的效果更好
+        #   True和False都可以尝试一下，有些时候正效果，有些时候负效果，比较玄学
+        #   默认设置为预训练数据集中效果比较好的设置方式。
         #---------------------------------------------------------------------#
-        "letterbox_image"   : False,
+        "letterbox_image"   : True,
     }
 
     #---------------------------------------------------#
@@ -66,18 +80,6 @@ class Pspnet(object):
                 map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),
                     self.colors))
 
-    def letterbox_image(self ,image, size):
-        '''resize image with unchanged aspect ratio using padding'''
-        iw, ih = image.size
-        w, h = size
-        scale = min(w/iw, h/ih)
-        nw = int(iw*scale)
-        nh = int(ih*scale)
-
-        image = image.resize((nw,nh), Image.BICUBIC)
-        new_image = Image.new('RGB', size, (128,128,128))
-        new_image.paste(image, ((w-nw)//2, (h-nh)//2))
-        return new_image,nw,nh
 
     #---------------------------------------------------#
     #   检测图片
@@ -90,11 +92,12 @@ class Pspnet(object):
         orininal_h = np.array(image).shape[0]
         orininal_w = np.array(image).shape[1]
         
-        #---------------------------------------------------#
-        #   进行不失真的resize，添加灰条，进行图像归一化
-        #---------------------------------------------------#
+        #---------------------------------------------------------#
+        #   给图像增加灰条，实现不失真的resize
+        #   也可以直接resize进行识别
+        #---------------------------------------------------------#
         if self.letterbox_image:
-            img, nw, nh = self.letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
+            img, nw, nh = letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
         else:
             img = image.convert('RGB')
             img = img.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)
