@@ -1,16 +1,8 @@
-'''
-predict.py有几个注意点
-1、该代码无法直接进行批量预测，如果想要批量预测，可以利用os.listdir()遍历文件夹，利用Image.open打开图片文件进行预测。
-具体流程可以参考get_miou_prediction.py，在get_miou_prediction.py即实现了遍历。
-2、如果想要保存，利用r_image.save("img.jpg")即可保存。
-3、如果想要原图和分割图不混合，可以把blend参数设置成False。
-4、如果想根据mask获取对应的区域，可以参考detect_image函数中，利用预测结果绘图的部分，判断每一个像素点的种类，然后根据种类获取对应的部分。
-seg_img = np.zeros((np.shape(pr)[0],np.shape(pr)[1],3))
-for c in range(self.num_classes):
-    seg_img[:, :, 0] += ((pr == c)*( self.colors[c][0] )).astype('uint8')
-    seg_img[:, :, 1] += ((pr == c)*( self.colors[c][1] )).astype('uint8')
-    seg_img[:, :, 2] += ((pr == c)*( self.colors[c][2] )).astype('uint8')
-'''
+#----------------------------------------------------#
+#   对视频中的predict.py进行了修改，
+#   将单张图片预测、摄像头检测和FPS测试功能
+#   整合到了一个py文件中，通过指定mode进行模式的修改。
+#----------------------------------------------------#
 import time
 
 import cv2
@@ -41,14 +33,17 @@ if __name__ == "__main__":
 
     if mode == "predict":
         '''
+        predict.py有几个注意点
         1、该代码无法直接进行批量预测，如果想要批量预测，可以利用os.listdir()遍历文件夹，利用Image.open打开图片文件进行预测。
-        具体流程可以参考get_dr_txt.py，在get_dr_txt.py即实现了遍历还实现了目标信息的保存。
-        2、如果想要进行检测完的图片的保存，利用r_image.save("img.jpg")即可保存，直接在predict.py里进行修改即可。 
-        3、如果想要获得预测框的坐标，可以进入pspnet.detect_image函数，在绘图部分读取top，left，bottom，right这四个值。
-        4、如果想要利用预测框截取下目标，可以进入pspnet.detect_image函数，在绘图部分利用获取到的top，left，bottom，right这四个值
-        在原图上利用矩阵的方式进行截取。
-        5、如果想要在预测图上写额外的字，比如检测到的特定目标的数量，可以进入pspnet.detect_image函数，在绘图部分对predicted_class进行判断，
-        比如判断if predicted_class == 'car': 即可判断当前目标是否为车，然后记录数量即可。利用draw.text即可写字。
+        具体流程可以参考get_miou_prediction.py，在get_miou_prediction.py即实现了遍历。
+        2、如果想要保存，利用r_image.save("img.jpg")即可保存。
+        3、如果想要原图和分割图不混合，可以把blend参数设置成False。
+        4、如果想根据mask获取对应的区域，可以参考detect_image函数中，利用预测结果绘图的部分，判断每一个像素点的种类，然后根据种类获取对应的部分。
+        seg_img = np.zeros((np.shape(pr)[0],np.shape(pr)[1],3))
+        for c in range(self.num_classes):
+            seg_img[:, :, 0] += ((pr == c)*( self.colors[c][0] )).astype('uint8')
+            seg_img[:, :, 1] += ((pr == c)*( self.colors[c][1] )).astype('uint8')
+            seg_img[:, :, 2] += ((pr == c)*( self.colors[c][2] )).astype('uint8')
         '''
         while True:
             img = input('Input image filename:')
