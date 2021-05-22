@@ -1,12 +1,11 @@
 import tensorflow as tf
+from keras.initializers import random_normal
 from keras.layers import *
 from keras.models import *
 
 from nets.mobilenetv2 import get_mobilenet_encoder
 from nets.resnet50 import get_resnet50_encoder
 
-IMAGE_ORDERING = 'channels_last'
-MERGE_AXIS = -1
 
 def resize_images(args):
     x = args[0]
@@ -22,12 +21,12 @@ def pool_block(feats, pool_factor, out_channel):
     #   poolsize    = 30/1=30  30/2=15  30/3=10  30/6=5
     #-----------------------------------------------------#
     pool_size = strides = [int(np.round(float(h)/pool_factor)),int(np.round(float(w)/pool_factor))]
-    x = AveragePooling2D(pool_size , data_format=IMAGE_ORDERING , strides=strides, padding='same')(feats)
+    x = AveragePooling2D(pool_size, strides=strides, padding='same')(feats)
 
     #-----------------------------------------------------#
     #   利用1x1卷积进行通道数的调整
     #-----------------------------------------------------#
-    x = Conv2D(out_channel//4, (1 ,1), data_format=IMAGE_ORDERING, padding='same', use_bias=False)(x)
+    x = Conv2D(out_channel//4, (1 ,1), kernel_initializer = random_normal(stddev=0.02), padding='same', use_bias=False)(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
@@ -66,10 +65,10 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
     #   利用获取到的特征层进行堆叠
     #   30, 30, 320 + 30, 30, 80 + 30, 30, 80 + 30, 30, 80 + 30, 30, 80 = 30, 30, 640
     #--------------------------------------------------------------------------------#
-    o = Concatenate(axis=MERGE_AXIS)(pool_outs)
+    o = Concatenate(axis=-1)(pool_outs)
 
     # 30, 30, 640 -> 30, 30, 80
-    o = Conv2D(out_channel//4, (3,3), data_format=IMAGE_ORDERING, padding='same', use_bias=False)(o)
+    o = Conv2D(out_channel//4, (3,3), kernel_initializer = random_normal(stddev=0.02), padding='same', use_bias=False)(o)
     o = BatchNormalization()(o)
     o = Activation('relu')(o)
 
@@ -80,7 +79,7 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
     #	利用特征获得预测结果
     #   30, 30, 80 -> 30, 30, 21 -> 473, 473, 21
     #---------------------------------------------------#
-    o = Conv2D(n_classes,(1,1),data_format=IMAGE_ORDERING, padding='same')(o)
+    o = Conv2D(n_classes,(1,1), kernel_initializer = random_normal(stddev=0.02), padding='same')(o)
     o = Lambda(resize_images)([o, img_input])
 
     #---------------------------------------------------#
@@ -90,7 +89,7 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
 
     if aux_branch:
         # 30, 30, 96 -> 30, 30, 40 
-        f4 = Conv2D(out_channel//8, (3,3), data_format=IMAGE_ORDERING, padding='same', use_bias=False, name="branch_conv1")(f4)
+        f4 = Conv2D(out_channel//8, (3,3), kernel_initializer = random_normal(stddev=0.02), padding='same', use_bias=False, name="branch_conv1")(f4)
         f4 = BatchNormalization(name="branch_batchnor1")(f4)
         f4 = Activation('relu', name="branch_relu1")(f4)
         f4 = Dropout(0.1)(f4)
@@ -98,7 +97,7 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
         #	利用特征获得预测结果
         #   30, 30, 40 -> 30, 30, 21 -> 473, 473, 21
         #---------------------------------------------------#
-        f4 = Conv2D(n_classes,(1,1),data_format=IMAGE_ORDERING, padding='same', name="branch_conv2")(f4)
+        f4 = Conv2D(n_classes,(1,1), kernel_initializer = random_normal(stddev=0.02), padding='same', name="branch_conv2")(f4)
         f4 = Lambda(resize_images, name="branch_resize")([f4, img_input])
 
         f4 = Activation("softmax", name="aux")(f4)

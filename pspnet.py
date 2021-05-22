@@ -1,6 +1,6 @@
 import colorsys
 import copy
-import os
+import time
 
 import numpy as np
 from PIL import Image
@@ -19,7 +19,7 @@ def letterbox_image(image, size):
     image = image.resize((nw,nh), Image.BICUBIC)
     new_image = Image.new('RGB', size, (128,128,128))
     new_image.paste(image, ((w-nw)//2, (h-nh)//2))
-    return new_image,nw,nh
+    return new_image, nw, nh
 
 #--------------------------------------------#
 #   使用自己训练好的模型预测需要修改3个参数
@@ -79,12 +79,17 @@ class Pspnet(object):
             self.colors = list(
                 map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),
                     self.colors))
-
+            self.colors = (0, 0, 0)
 
     #---------------------------------------------------#
     #   检测图片
     #---------------------------------------------------#
     def detect_image(self, image):
+        #---------------------------------------------------------#
+        #   在这里将图像转换成RGB图像，防止灰度图在预测时报错。
+        #---------------------------------------------------------#
+        image = image.convert('RGB')
+
         #---------------------------------------------------#
         #   对输入图像进行一个备份，后面用于绘图
         #---------------------------------------------------#
@@ -97,10 +102,9 @@ class Pspnet(object):
         #   也可以直接resize进行识别
         #---------------------------------------------------------#
         if self.letterbox_image:
-            img, nw, nh = letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
+            img, nw, nh = letterbox_image(image, (self.model_image_size[1],self.model_image_size[0]))
         else:
-            img = image.convert('RGB')
-            img = img.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)
+            img = image.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)
         img = np.asarray([np.array(img)/255])
         
         #---------------------------------------------------#
@@ -138,3 +142,41 @@ class Pspnet(object):
             image = Image.blend(old_img,image,0.7)
 
         return image
+
+    def get_FPS(self, image, test_interval):
+        #---------------------------------------------------------#
+        #   在这里将图像转换成RGB图像，防止灰度图在预测时报错。
+        #---------------------------------------------------------#
+        image = image.convert('RGB')
+        
+        orininal_h = np.array(image).shape[0]
+        orininal_w = np.array(image).shape[1]
+        #---------------------------------------------------------#
+        #   给图像增加灰条，实现不失真的resize
+        #   也可以直接resize进行识别
+        #---------------------------------------------------------#
+        if self.letterbox_image:
+            img, nw, nh = letterbox_image(image,(self.model_image_size[1],self.model_image_size[0]))
+        else:
+            img = image.resize((self.model_image_size[1],self.model_image_size[0]), Image.BICUBIC)
+        img = np.asarray([np.array(img)/255])
+        
+        pr = self.model.predict(img)[0]
+        pr = pr.argmax(axis=-1).reshape([self.model_image_size[0],self.model_image_size[1]])
+        if self.letterbox_image:
+            pr = pr[int((self.model_image_size[0]-nh)//2):int((self.model_image_size[0]-nh)//2+nh), int((self.model_image_size[1]-nw)//2):int((self.model_image_size[1]-nw)//2+nw)]
+        
+        image = Image.fromarray(np.uint8(pr)).resize((orininal_w,orininal_h), Image.NEAREST)
+
+        t1 = time.time()
+        for _ in range(test_interval): 
+            pr = self.model.predict(img)[0]
+            pr = pr.argmax(axis=-1).reshape([self.model_image_size[0],self.model_image_size[1]])
+            if self.letterbox_image:
+                pr = pr[int((self.model_image_size[0]-nh)//2):int((self.model_image_size[0]-nh)//2+nh), int((self.model_image_size[1]-nw)//2):int((self.model_image_size[1]-nw)//2+nw)]
+            
+            image = Image.fromarray(np.uint8(pr)).resize((orininal_w,orininal_h), Image.NEAREST)
+
+        t2 = time.time()
+        tact_time = (t2 - t1) / test_interval
+        return tact_time

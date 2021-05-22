@@ -1,10 +1,7 @@
-from keras import layers
 from keras.activations import relu
-from keras.layers import (Activation, Add, BatchNormalization, Concatenate,
-                          Conv2D, DepthwiseConv2D, Dropout,
-                          GlobalAveragePooling2D, Input, Lambda, ZeroPadding2D)
-from keras.models import Model
-
+from keras.layers import (Activation, Add, BatchNormalization, Conv2D,
+                          DepthwiseConv2D, Input)
+from keras.initializers import random_normal
 
 def _make_divisible(v, divisor, min_value=None):
     if min_value is None:
@@ -23,12 +20,11 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id, ski
     prefix = 'expanded_conv_{}_'.format(block_id)
 
     x = inputs
-
     #----------------------------------------------------#
     #   利用1x1卷积根据输入进来的通道数进行通道数上升
     #----------------------------------------------------#
     if block_id:
-        x = Conv2D(expansion * in_channels, kernel_size=1, padding='same',
+        x = Conv2D(expansion * in_channels, kernel_size=1, padding='same', kernel_initializer = random_normal(stddev=0.02),
                    use_bias=False, activation=None,
                    name=prefix + 'expand')(x)
         x = BatchNormalization(epsilon=1e-3, momentum=0.999,
@@ -40,7 +36,7 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id, ski
     #----------------------------------------------------#
     #   利用深度可分离卷积进行特征提取
     #----------------------------------------------------#
-    x = DepthwiseConv2D(kernel_size=3, strides=stride, activation=None,
+    x = DepthwiseConv2D(kernel_size=3, strides=stride, activation=None, depthwise_initializer = random_normal(stddev=0.02),
                         use_bias=False, padding='same', dilation_rate=(rate, rate),
                         name=prefix + 'depthwise')(x)
     x = BatchNormalization(epsilon=1e-3, momentum=0.999,name=prefix + 'depthwise_BN')(x)
@@ -49,7 +45,7 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id, ski
     #----------------------------------------------------#
     #   利用1x1的卷积进行通道数的下降
     #----------------------------------------------------#
-    x = Conv2D(pointwise_filters,
+    x = Conv2D(pointwise_filters, kernel_initializer = random_normal(stddev=0.02),
                kernel_size=1, padding='same', use_bias=False, activation=None,
                name=prefix + 'project')(x)
     x = BatchNormalization(epsilon=1e-3, momentum=0.999, name=prefix + 'project_BN')(x)
@@ -81,7 +77,7 @@ def get_mobilenet_encoder(inputs_size, downsample_factor=8):
 
     # 473,473,3 -> 237,237,32
     x = Conv2D(first_block_filters,
-                kernel_size=3,
+                kernel_size=3, kernel_initializer = random_normal(stddev=0.02),
                 strides=(2, 2), padding='same',
                 use_bias=False, name='Conv')(inputs)
     x = BatchNormalization(epsilon=1e-3, momentum=0.999, name='Conv_BN')(x)
