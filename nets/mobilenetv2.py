@@ -1,7 +1,8 @@
 from keras.activations import relu
+from keras.initializers import random_normal
 from keras.layers import (Activation, Add, BatchNormalization, Conv2D,
                           DepthwiseConv2D, Input)
-from keras.initializers import random_normal
+
 
 def _make_divisible(v, divisor, min_value=None):
     if min_value is None:

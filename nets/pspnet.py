@@ -36,21 +36,21 @@ def pool_block(feats, pool_factor, out_channel):
     x = Lambda(resize_images)([x, feats])
     return x
 
-def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', aux_branch=True):
+def pspnet(input_shape, num_classes, backbone='mobilenet', downsample_factor=8, aux_branch=True):
     if backbone == "mobilenet":
         #----------------------------------#
         #   获得两个特征层
         #   f4为辅助分支    [30,30,96]
         #   o为主干部分     [30,30,320]
         #----------------------------------#
-        img_input, f4, o = get_mobilenet_encoder(inputs_size, downsample_factor=downsample_factor)
+        img_input, f4, o = get_mobilenet_encoder(input_shape, downsample_factor=downsample_factor)
         out_channel = 320
     elif backbone == "resnet50":
-        img_input, f4, o = get_resnet50_encoder(inputs_size, downsample_factor=downsample_factor)
+        img_input, f4, o = get_resnet50_encoder(input_shape, downsample_factor=downsample_factor)
         out_channel = 2048
     else:
         raise ValueError('Unsupported backbone - `{}`, Use mobilenet, resnet50.'.format(backbone))
-
+        
     #--------------------------------------------------------------#
     #	PSP模块，分区域进行池化
     #   分别分割成1x1的区域，2x2的区域，3x3的区域，6x6的区域
@@ -79,7 +79,7 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
     #	利用特征获得预测结果
     #   30, 30, 80 -> 30, 30, 21 -> 473, 473, 21
     #---------------------------------------------------#
-    o = Conv2D(n_classes,(1,1), kernel_initializer = random_normal(stddev=0.02), padding='same')(o)
+    o = Conv2D(num_classes,(1,1), kernel_initializer = random_normal(stddev=0.02), padding='same')(o)
     o = Lambda(resize_images)([o, img_input])
 
     #---------------------------------------------------#
@@ -97,7 +97,7 @@ def pspnet(n_classes, inputs_size, downsample_factor=8, backbone='mobilenet', au
         #	利用特征获得预测结果
         #   30, 30, 40 -> 30, 30, 21 -> 473, 473, 21
         #---------------------------------------------------#
-        f4 = Conv2D(n_classes,(1,1), kernel_initializer = random_normal(stddev=0.02), padding='same', name="branch_conv2")(f4)
+        f4 = Conv2D(num_classes,(1,1), kernel_initializer = random_normal(stddev=0.02), padding='same', name="branch_conv2")(f4)
         f4 = Lambda(resize_images, name="branch_resize")([f4, img_input])
 
         f4 = Activation("softmax", name="aux")(f4)
