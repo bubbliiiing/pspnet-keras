@@ -127,7 +127,6 @@ class Pspnet(object):
         #---------------------------------------------------#
         pr = pr.argmax(axis=-1)
 
-
         if self.mix_type == 0:
             # seg_img = np.zeros((np.shape(pr)[0], np.shape(pr)[1], 3))
             # for c in range(self.num_classes):
