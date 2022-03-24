@@ -38,10 +38,10 @@ keras==2.1.5
 
 ### 文件下载
 训练所需的pspnet_mobilenetv2.h5和pspnet_resnet50.h5可在百度网盘中下载。    
-链接: https://pan.baidu.com/s/1mHxhzf1jsgc44N-ZksDN9Q 提取码: eci3   
+链接: https://pan.baidu.com/s/1q7JT86hQ2cdeXASSdXtlHQ 提取码: mjwn  
 
 VOC拓展数据集的百度网盘如下：  
-链接: https://pan.baidu.com/s/1BrR7AUM1XJvPWjKMIy2uEw 提取码: vszf    
+链接: https://pan.baidu.com/s/1vkk3lMheUm6IjTXznlg7Ng 提取码: 44mk   
 
 ### 训练步骤
 #### a、训练voc数据集
