@@ -8,13 +8,17 @@ from keras.callbacks import (EarlyStopping, LearningRateScheduler,
 from keras.layers import Conv2D, Dense, DepthwiseConv2D
 from keras.optimizers import SGD, Adam
 from keras.regularizers import l2
+from keras.utils.multi_gpu_utils import multi_gpu_model
 
 from nets.pspnet import pspnet
 from nets.pspnet_training import (CE, Focal_Loss, dice_loss_with_CE,
                                   dice_loss_with_Focal_Loss, get_lr_scheduler)
-from utils.callbacks import ExponentDecayScheduler, LossHistory
+from utils.callbacks import (ExponentDecayScheduler, LossHistory,
+                             ParallelModelCheckpoint,
+                             WarmUpCosineDecayScheduler)
 from utils.dataloader import PSPnetDataset
 from utils.utils_metrics import Iou_score, f_score
+
 
 '''
 训练自己的语义分割模型一定需要注意以下几点：
@@ -41,6 +45,12 @@ from utils.utils_metrics import Iou_score, f_score
    这些都是经验上，只能靠各位同学多查询资料和自己试试了。
 '''
 if __name__ == "__main__":     
+    #---------------------------------------------------------------------#
+    #   train_gpu   训练用到的GPU
+    #               默认为第一张卡、双卡为[0, 1]、三卡为[0, 1, 2]
+    #               在使用多GPU时，每个卡上的batch为总batch除以卡的数量。
+    #---------------------------------------------------------------------#
+    train_gpu   = [0,]
     #-----------------------------------------------------#
     #   num_classes     训练自己的数据集必须要修改的
     #                   自己需要的分类个数+1，如2+1
@@ -210,15 +220,27 @@ if __name__ == "__main__":
     num_workers     = 1
 
     #------------------------------------------------------#
+    #   设置用到的显卡
+    #------------------------------------------------------#
+    os.environ["CUDA_VISIBLE_DEVICES"]  = ','.join(str(x) for x in train_gpu)
+    ngpus_per_node                      = len(train_gpu)
+    print('Number of devices: {}'.format(ngpus_per_node))
+
+    #------------------------------------------------------#
     #   获取model
     #------------------------------------------------------#
-    model = pspnet([input_shape[0], input_shape[1], 3], num_classes, downsample_factor=downsample_factor, backbone=backbone, aux_branch=aux_branch)
+    model_body = pspnet([input_shape[0], input_shape[1], 3], num_classes, downsample_factor=downsample_factor, backbone=backbone, aux_branch=aux_branch)
     if model_path != '':
         #------------------------------------------------------#
         #   载入预训练权重
         #------------------------------------------------------#
         print('Load weights {}.'.format(model_path))
-        model.load_weights(model_path, by_name=True, skip_mismatch=True)
+        model_body.load_weights(model_path, by_name=True, skip_mismatch=True)
+
+    if ngpus_per_node > 1:
+        model = multi_gpu_model(model_body, gpus=ngpus_per_node)
+    else:
+        model = model_body
 
     if focal_loss:
         if dice_loss:
@@ -241,7 +263,7 @@ if __name__ == "__main__":
     num_train   = len(train_lines)
     num_val     = len(val_lines)
 
-    for layer in model.layers:
+    for layer in model_body.layers:
         if isinstance(layer, DepthwiseConv2D):
                 layer.add_loss(l2(weight_decay)(layer.depthwise_kernel))
         elif isinstance(layer, Conv2D) or isinstance(layer, Dense):
@@ -264,7 +286,7 @@ if __name__ == "__main__":
                 freeze_layers = 146
             else:
                 freeze_layers = 172
-            for i in range(freeze_layers): model.layers[i].trainable = False
+            for i in range(freeze_layers): model_body.layers[i].trainable = False
             print('Freeze the first {} layers of total {} layers.'.format(freeze_layers, len(model.layers)))
 
         #-------------------------------------------------------------------#
@@ -326,8 +348,12 @@ if __name__ == "__main__":
         log_dir         = os.path.join(save_dir, "loss_" + str(time_str))
         logging         = TensorBoard(log_dir)
         loss_history    = LossHistory(log_dir)
-        checkpoint      = ModelCheckpoint(os.path.join(save_dir, "ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5"), 
-                                monitor = 'val_loss', save_weights_only = True, save_best_only = False, period = save_period)
+        if ngpus_per_node > 1:
+            checkpoint      = ParallelModelCheckpoint(model_body, os.path.join(save_dir, "ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5"), 
+                                    monitor = 'val_loss', save_weights_only = True, save_best_only = False, period = save_period)
+        else:
+            checkpoint      = ModelCheckpoint(os.path.join(save_dir, "ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5"), 
+                                    monitor = 'val_loss', save_weights_only = True, save_best_only = False, period = save_period)
         early_stopping  = EarlyStopping(monitor='val_loss', min_delta = 0, patience = 10, verbose = 1)
         lr_scheduler    = LearningRateScheduler(lr_scheduler_func, verbose = 1)
         callbacks       = [logging, loss_history, checkpoint, lr_scheduler]
@@ -369,8 +395,8 @@ if __name__ == "__main__":
             lr_scheduler    = LearningRateScheduler(lr_scheduler_func, verbose = 1)
             callbacks       = [logging, loss_history, checkpoint, lr_scheduler]
             
-            for i in range(len(model.layers)): 
-                model.layers[i].trainable = True
+            for i in range(len(model_body.layers)): 
+                model_body.layers[i].trainable = True
             if aux_branch:
                 model.compile(
                     loss            = [loss, loss], 

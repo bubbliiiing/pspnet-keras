@@ -125,6 +125,25 @@ class PSPnetDataset(keras.utils.Sequence):
         label = new_label
 
         image_data      = np.array(image, np.uint8)
+
+        #------------------------------------------#
+        #   高斯模糊
+        #------------------------------------------#
+        blur = self.rand() < 0.25
+        if blur: 
+            image_data = cv2.GaussianBlur(image_data, (5, 5), 0)
+
+        #------------------------------------------#
+        #   旋转
+        #------------------------------------------#
+        rotate = self.rand() < 0.25
+        if rotate: 
+            center      = (w // 2, h // 2)
+            rotation    = np.random.randint(-10, 11)
+            M           = cv2.getRotationMatrix2D(center, -rotation, scale=1)
+            image_data  = cv2.warpAffine(image_data, M, (w, h), flags=cv2.INTER_CUBIC, borderValue=(128,128,128))
+            label       = cv2.warpAffine(np.array(label, np.uint8), M, (w, h), flags=cv2.INTER_NEAREST, borderValue=(0))
+
         #---------------------------------#
         #   对图像进行色域变换
         #   计算色域变换的参数
