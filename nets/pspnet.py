@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from keras.initializers import random_normal
 from keras.layers import *
