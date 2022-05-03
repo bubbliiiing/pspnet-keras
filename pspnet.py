@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 
 from nets.pspnet import pspnet
-from utils.utils import cvtColor, preprocess_input, resize_image
+from utils.utils import cvtColor, preprocess_input, resize_image, show_config
 
 #-----------------------------------------------------------------------------------#
 #   使用自己训练好的模型预测需要修改3个参数
@@ -72,6 +72,8 @@ class Pspnet(object):
         #   获得模型
         #---------------------------------------------------#
         self.generate()
+        
+        show_config(**self._defaults)
 
     #---------------------------------------------------#
     #   载入模型
